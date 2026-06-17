@@ -22,7 +22,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft Ya
 .card-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
 .card-title .icon { width: 20px; text-align: center; }
 
-/* Condition Form - 3 rows x 4 cols */
+/* NL Input */
+.nl-input-wrap { margin-bottom: 14px; position: relative; }
+.nl-input { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border .2s; background: #fafbfc; }
+.nl-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.nl-input::placeholder { color: #adb5bd; }
+.nl-hint { font-size: 11px; color: #adb5bd; margin-top: 4px; }
+.nl-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #eff6ff; color: var(--accent); margin: 2px 4px; cursor: pointer; }
+.nl-tag:hover { background: #dbeafe; }
+
+/* Condition Form */
 .cond-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 16px; }
 .cond-item { display: flex; flex-direction: column; gap: 3px; }
 .cond-item label { font-size: 12px; color: var(--sub); font-weight: 600; }
@@ -31,14 +40,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft Ya
 .cond-item input:focus, .cond-item select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,.1); }
 .cond-item .range-sep { font-size: 13px; color: var(--sub); flex-shrink: 0; }
 .cond-item .unit { font-size: 11px; color: var(--sub); margin-top: 1px; }
+.cond-item.matched input, .cond-item.matched select { border-color: var(--accent); background: #f8faff; }
 
-/* Toggle row */
-.cond-toggle { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
-.cond-toggle label.toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: #f9fafb; transition: all .15s; }
-.cond-toggle label.toggle.checked { background: #eff6ff; border-color: var(--accent); color: var(--accent); }
-.cond-toggle label.toggle input { display: none; }
-
-/* Mode toggle (快速/全市场) */
+/* Mode toggle */
 .mode-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; padding: 5px 14px; border: 1px solid var(--border); border-radius: 6px; background: #f9fafb; transition: all .15s; }
 .mode-toggle.checked { background: #eff6ff; border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .mode-toggle input { display: none; }
@@ -51,23 +55,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft Ya
 .btn-secondary { background: #fff; color: var(--text); }
 .btn-secondary:hover { background: var(--hover); }
 .btn-sm { padding: 5px 12px; font-size: 12px; }
-.btn-accent { background: var(--accent2); color: #fff; border-color: var(--accent2); }
-.btn-accent:hover { background: #047857; }
 
-/* Results summary */
+/* Table */
 .summary-bar { display: flex; gap: 20px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .summary-bar .stat { text-align: center; }
 .summary-bar .stat .num { font-size: 24px; font-weight: 700; color: var(--accent); }
 .summary-bar .stat .lbl { font-size: 11px; color: var(--sub); }
-
-/* Table */
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--sub); font-weight: 600; font-size: 12px; white-space: nowrap; cursor: pointer; user-select: none; }
 th:hover { color: var(--accent); }
 th .sort-arrow { font-size: 10px; }
 td { padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-tr:hover td { background: var(--hover); }
+tbody tr { cursor: pointer; transition: background .1s; }
+tbody tr:hover td { background: #eff6ff; }
 tr.selected td { background: #eff6ff; }
 .stock-code { font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; color: var(--sub); }
 .stock-name { font-weight: 600; }
@@ -77,10 +78,8 @@ tr.selected td { background: #eff6ff; }
 .tag-bull { background: #fef2f2; color: var(--red); }
 .tag-bear { background: #f0fdf4; color: var(--green); }
 .tag-neutral { background: #f9fafb; color: var(--sub); }
-.tag-gold { background: #fffbeb; color: #d97706; }
-.highlight { background: #fefce8 !important; }
 
-/* Analysis Panel */
+/* Analysis */
 .analysis-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 .analysis-box { background: #f9fafb; border-radius: 8px; padding: 14px; }
 .analysis-box h4 { font-size: 13px; color: var(--sub); margin-bottom: 8px; }
@@ -99,17 +98,34 @@ tr.selected td { background: #eff6ff; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { font-size: 13px; color: var(--sub); }
 
-/* Empty state */
+/* Empty / Error */
 .empty { text-align: center; padding: 50px 20px; color: var(--sub); }
 .empty .big { font-size: 40px; margin-bottom: 10px; }
 .empty p { font-size: 14px; }
-
-/* Error */
 .error-msg { padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: var(--red); font-size: 13px; margin-bottom: 12px; display: none; }
 .error-msg.show { display: block; }
 
-/* Responsive */
-@media (max-width: 1100px) { .cond-grid { grid-template-columns: repeat(2, 1fr); } .analysis-grid { grid-template-columns: 1fr; } }
+/* Modal */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.4); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 90vw; max-width: 1000px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 1; }
+.modal-header h2 { font-size: 17px; }
+.modal-close { width: 32px; height: 32px; border: none; background: #f3f4f6; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: #e5e7eb; }
+.modal-body { padding: 20px; }
+.modal-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+.modal-stat { text-align: center; padding: 10px 6px; background: #f9fafb; border-radius: 8px; }
+.modal-stat .val { font-size: 18px; font-weight: 700; }
+.modal-stat .lbl { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.modal-ma { display: flex; gap: 16px; margin-bottom: 12px; font-size: 13px; }
+.modal-ma span { padding: 4px 10px; border-radius: 4px; background: #f3f4f6; }
+.chart-container { position: relative; width: 100%; }
+.chart-container canvas { width: 100%; height: auto; }
+.chart-legend { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; }
+.chart-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+@media (max-width: 1100px) { .cond-grid { grid-template-columns: repeat(2, 1fr); } .analysis-grid { grid-template-columns: 1fr; } .modal-stats { grid-template-columns: repeat(3, 1fr); } }
 </style>
 </head>
 <body>
@@ -118,7 +134,7 @@ tr.selected td { background: #eff6ff; }
   <!-- Header -->
   <div class="header">
     <div>
-      <h1>📊 股票条件选股分析 <span class="badge">v2.1</span></h1>
+      <h1>📊 股票条件选股分析 <span class="badge">v2.2</span></h1>
     </div>
     <div class="header-actions">
       <span class="time" id="updateTime">就绪</span>
@@ -127,20 +143,40 @@ tr.selected td { background: #eff6ff; }
     </div>
   </div>
 
+  <!-- Natural Language Input -->
+  <div class="card">
+    <div class="card-title"><span class="icon">💬</span> 自然语言输入 <span style="font-weight:400;font-size:12px;color:var(--sub);">— 输入一段话自动解析为选股条件</span></div>
+    <div class="nl-input-wrap">
+      <input class="nl-input" id="nlInput" type="text"
+        placeholder="例如：流通市值30到120亿，均线多头排列，收盘价在5日均线上方，近10天至少涨停1次，换手率3%到15%，20日涨幅0到50%，市值30-120亿"
+        onkeydown="if(event.key==='Enter')parseNL()">
+      <div class="nl-hint">
+        试试点击：<span class="nl-tag" onclick="fillExample('default')">老大默认条件</span>
+        <span class="nl-tag" onclick="fillExample('small_cap')">小盘成长</span>
+        <span class="nl-tag" onclick="fillExample('blue_chip')">大盘白马</span>
+        <span class="nl-tag" onclick="fillExample('breakout')">突破形态</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="parseNL()">✨ 解析条件</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('nlInput').value=''; clearNLHighlights()">清除</button>
+    </div>
+  </div>
+
   <!-- Condition Input Card -->
   <div class="card">
     <div class="card-title"><span class="icon">🔍</span> 选股条件</div>
     <div class="cond-grid">
-      <div class="cond-item">
+      <div class="cond-item" data-field="exclude_st">
         <label>排除ST / *ST</label>
         <select id="f_exclude_st"><option value="1">是</option><option value="0">否</option></select>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="min_listed_days">
         <label>上市天数 ≥</label>
         <div class="input-row"><input id="f_min_listed_days" type="number" value="60" min="0"></div>
         <span class="unit">自然日</span>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="float_mcap">
         <label>流通市值区间</label>
         <div class="input-row">
           <input id="f_float_mcap_min" type="number" value="30" min="0" step="1" style="width:60px">
@@ -149,7 +185,7 @@ tr.selected td { background: #eff6ff; }
         </div>
         <span class="unit">亿元</span>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="chg_20d">
         <label>20日区间涨跌幅</label>
         <div class="input-row">
           <input id="f_chg_20d_min" type="number" value="0" step="0.1" style="width:60px">
@@ -158,20 +194,20 @@ tr.selected td { background: #eff6ff; }
         </div>
         <span class="unit">%</span>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="ma_bullish">
         <label>均线排列</label>
         <select id="f_ma_bullish"><option value="1">MA5 &gt; MA10 &gt; MA20（多头）</option><option value="0">不限</option></select>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="close_above_ma5">
         <label>收盘价 vs MA5</label>
         <select id="f_close_above_ma5"><option value="1">收盘价 &gt; 5日均线</option><option value="0">不限</option></select>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="limit_up">
         <label>近10天涨停次数 ≥</label>
         <div class="input-row"><input id="f_min_limit_up_10d" type="number" value="1" min="0" max="10"></div>
         <span class="unit">次</span>
       </div>
-      <div class="cond-item">
+      <div class="cond-item" data-field="turnover">
         <label>换手率区间</label>
         <div class="input-row">
           <input id="f_turnover_min" type="number" value="3" step="0.1" style="width:60px">
@@ -185,13 +221,13 @@ tr.selected td { background: #eff6ff; }
       <button class="btn btn-primary" id="btnAnalyze" onclick="runAnalysis()">🔍 开始分析</button>
       <div style="display: flex; gap: 6px; align-items: center;">
         <span style="font-size: 12px; color: var(--sub);">筛选模式:</span>
-        <label class="mode-toggle" id="modeFast" onclick="setMode('fast')">
-          <input type="radio" name="screener_mode" value="fast" checked>
-          <span>⚡ 快速</span>
-        </label>
         <label class="mode-toggle checked" id="modeFull" onclick="setMode('full')">
-          <input type="radio" name="screener_mode" value="full">
+          <input type="radio" name="screener_mode" value="full" checked>
           <span>🌐 全市场</span>
+        </label>
+        <label class="mode-toggle" id="modeFast" onclick="setMode('fast')">
+          <input type="radio" name="screener_mode" value="fast">
+          <span>⚡ 快速</span>
         </label>
       </div>
       <span style="font-size: 12px; color: var(--sub);">数据来源: 新浪财经 全A股 K线</span>
@@ -199,77 +235,214 @@ tr.selected td { background: #eff6ff; }
   </div>
 
   <!-- Loading -->
-  <div class="loading-overlay" id="loading">
-    <div class="spinner"></div>
-    <div class="loading-text">正在获取数据并分析中...</div>
-  </div>
+  <div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-text">正在获取数据并分析中...</div></div>
 
   <!-- Error -->
   <div class="error-msg" id="errorMsg"></div>
 
-  <!-- Results Section (hidden until analysis) -->
+  <!-- Results -->
   <div id="resultsSection" style="display:none;">
-
-    <!-- Summary Bar -->
     <div class="card">
-      <div class="card-title"><span class="icon">📋</span> 筛选结果</div>
+      <div class="card-title"><span class="icon">📋</span> 筛选结果 <span style="font-size:11px;color:var(--sub);font-weight:400;">（点击行查看K线图）</span></div>
       <div class="summary-bar" id="summaryBar"></div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th data-sort="code" onclick="sortTable('code')">代码 <span class="sort-arrow"></span></th>
-              <th data-sort="name" onclick="sortTable('name')">名称</th>
-              <th data-sort="price" onclick="sortTable('price')">现价</th>
-              <th data-sort="change_pct" onclick="sortTable('change_pct')">涨跌幅 <span class="sort-arrow"></span></th>
-              <th data-sort="pe" onclick="sortTable('pe')">PE</th>
-              <th data-sort="float_mcap" onclick="sortTable('float_mcap')">流通市值</th>
-              <th data-sort="turnover" onclick="sortTable('turnover')">换手率</th>
-              <th data-sort="chg_20d" onclick="sortTable('chg_20d')">20日涨幅</th>
-              <th data-sort="ma_status" onclick="sortTable('ma_status')">均线</th>
-              <th data-sort="limit_up_count_10d" onclick="sortTable('limit_up_count_10d')">涨停(10d)</th>
-              <th data-sort="score" onclick="sortTable('score')">评分 <span class="sort-arrow"></span></th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th data-sort="code" onclick="sortTable('code')">代码 <span class="sort-arrow"></span></th>
+            <th data-sort="name" onclick="sortTable('name')">名称</th>
+            <th data-sort="price" onclick="sortTable('price')">现价</th>
+            <th data-sort="change_pct" onclick="sortTable('change_pct')">涨跌幅</th>
+            <th data-sort="pe" onclick="sortTable('pe')">PE</th>
+            <th data-sort="float_mcap" onclick="sortTable('float_mcap')">流通市值</th>
+            <th data-sort="turnover" onclick="sortTable('turnover')">换手率</th>
+            <th data-sort="chg_20d" onclick="sortTable('chg_20d')">20日涨幅</th>
+            <th data-sort="ma_status" onclick="sortTable('ma_status')">均线</th>
+            <th data-sort="limit_up_count_10d" onclick="sortTable('limit_up_count_10d')">涨停(10d)</th>
+            <th data-sort="score" onclick="sortTable('score')">评分 <span class="sort-arrow"></span></th>
+          </tr></thead>
           <tbody id="resultsBody"></tbody>
         </table>
       </div>
     </div>
-
-    <!-- Analysis Panel -->
     <div class="card">
       <div class="card-title"><span class="icon">📈</span> 综合分析报告</div>
       <div class="analysis-grid" id="analysisGrid"></div>
     </div>
-
   </div>
 
   <!-- Empty State -->
   <div class="empty" id="emptyState">
     <div class="big">🔎</div>
-    <p>请输入选股条件，点击<b>「开始分析」</b><br>系统将从 A 股市场中筛选符合条件的股票并生成分析报告</p>
+    <p>输入选股条件后点击<b>「开始分析」</b><br>或直接用自然语言描述你的选股思路</p>
   </div>
 
 </div>
 
+<!-- K-line Modal -->
+<div class="modal-overlay" id="klineModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="klineTitle">K线图</h2>
+      <button class="modal-close" onclick="closeKline()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-stats" id="klineStats"></div>
+      <div class="modal-ma" id="klineMA"></div>
+      <div class="chart-container">
+        <canvas id="klineCanvas"></canvas>
+      </div>
+      <div class="chart-legend" style="margin-top:8px;">
+        <span><span class="dot" style="background:#dc2626"></span>阳线（涨）</span>
+        <span><span class="dot" style="background:#16a34a"></span>阴线（跌）</span>
+        <span><span class="dot" style="background:#f59e0b"></span>MA5</span>
+        <span><span class="dot" style="background:#3b82f6"></span>MA10</span>
+        <span><span class="dot" style="background:#8b5cf6"></span>MA20</span>
+        <span style="margin-left:12px;font-size:11px;color:var(--sub);">数据: 新浪财经（前复权） | 近120日</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// ── State ──
-let results = [];
-let currentSort = 'score';
-let sortDir = -1; // -1=desc, 1=asc
-let screenerMode = 'full'; // 'fast' | 'full'
+let results = [], currentSort = 'score', sortDir = -1, screenerMode = 'full';
 
 // ── Mode toggle ──
 function setMode(mode) {
   screenerMode = mode;
   document.getElementById('modeFast').classList.toggle('checked', mode === 'fast');
   document.getElementById('modeFull').classList.toggle('checked', mode === 'full');
-  // 确保 radio button 同步
-  document.querySelector('input[name="screener_mode"][value="fast"]').checked = (mode === 'fast');
-  document.querySelector('input[name="screener_mode"][value="full"]').checked = (mode === 'full');
 }
 
-// ── Collect filters from form ──
+// ── NL Input: Examples ──
+function fillExample(type) {
+  const examples = {
+    default: '排除ST，上市大于60天，流通市值30到120亿，20日涨幅0到50%，均线多头排列，收盘价大于5日均线，近10天涨停至少1次，换手率3%到15%',
+    small_cap: '流通市值20到50亿，换手率5%到20%，近10天涨停至少1次，均线多头，非ST',
+    blue_chip: '排除ST，流通市值100到500亿，PE小于30，均线多头，涨跌幅-5到10%，换手率2%到10%',
+    breakout: '换手率8%到30%，近10天涨停至少2次，20天涨幅大于0，均线多头排列，收盘价在5日均线以上',
+  };
+  document.getElementById('nlInput').value = examples[type] || examples.default;
+}
+
+// ── NL Parsing ──
+function parseNL() {
+  const text = document.getElementById('nlInput').value.trim();
+  if (!text) return;
+
+  const f = {
+    exclude_st: '1',
+    min_listed_days: 0,
+    float_mcap_min: 0,
+    float_mcap_max: 999999,
+    chg_20d_min: -999,
+    chg_20d_max: 999,
+    ma_bullish: '0',
+    close_above_ma5: '0',
+    min_limit_up_10d: 0,
+    turnover_min: 0,
+    turnover_max: 999,
+  };
+  const matched = new Set();
+
+  // ST
+  if (/排[除出]|过滤|非|不是/.test(text) && /ST|\*ST|st/.test(text)) {
+    f.exclude_st = '1'; matched.add('exclude_st');
+  } else if (/包含|允许/.test(text) && /ST/.test(text)) {
+    f.exclude_st = '0'; matched.add('exclude_st');
+  }
+
+  // 上市天数
+  const listedMatch = text.match(/上市[大于≥超过至少]*[\s]*(\d+)/);
+  if (listedMatch) { f.min_listed_days = parseInt(listedMatch[1]); matched.add('min_listed_days'); }
+
+  // 市值 (通用: 流通市值/市值 + 范围)
+  const mcapRange = text.match(/(?:流通)?市值[\s]*(\d+)[\s\-~到至]*(\d+)[\s]*(?:亿)/);
+  if (mcapRange) {
+    f.float_mcap_min = parseFloat(mcapRange[1]);
+    f.float_mcap_max = parseFloat(mcapRange[2]);
+    matched.add('float_mcap');
+  } else {
+    const mcapMin = text.match(/(?:流通)?市值[大于≥超过]*[\s]*(\d+)/);
+    const mcapMax = text.match(/(?:流通)?市值[小于≤低于]*[\s]*(\d+)/);
+    if (mcapMin) { f.float_mcap_min = parseFloat(mcapMin[1]); matched.add('float_mcap'); }
+    if (mcapMax) { f.float_mcap_max = parseFloat(mcapMax[1]); matched.add('float_mcap'); }
+  }
+
+  // 20日涨跌幅
+  const chgRange = text.match(/(?:20日|二十日|近20)[\s]*(?:区间)?(?:涨跌幅?)[\s]*([-\d.]+)[\s\-~到至%,]*([-\d.]+)/);
+  if (chgRange) {
+    f.chg_20d_min = parseFloat(chgRange[1]);
+    f.chg_20d_max = parseFloat(chgRange[2]);
+    matched.add('chg_20d');
+  } else {
+    const chgMin = text.match(/(?:20日|二十日)[\s]*涨跌幅?[大于≥超过]*[\s]*([-\d.]+)/);
+    if (chgMin) { f.chg_20d_min = parseFloat(chgMin[1]); matched.add('chg_20d'); }
+  }
+
+  // 均线多头
+  if (/均线多头|多头排列|MA5.*MA10.*MA20|5日.*10日.*20日/.test(text) && !/均线空头|空头排列/.test(text)) {
+    f.ma_bullish = '1'; matched.add('ma_bullish');
+  }
+
+  // 收盘价 vs MA5
+  if (/收盘价[大于≥高于超过]*.*(?:5日|MA5|五日均线)/.test(text) || /站在.*(?:5日|MA5).*上方/.test(text)) {
+    f.close_above_ma5 = '1'; matched.add('close_above_ma5');
+  }
+
+  // 涨停次数
+  const luMatch = text.match(/(?:近10天|10日内|10天)[\s]*涨停[\s]*[至少≥超过]*[\s]*(\d+)/);
+  if (luMatch) {
+    f.min_limit_up_10d = parseInt(luMatch[1]); matched.add('limit_up');
+  }
+
+  // 换手率
+  const toRange = text.match(/换手率[\s]*([\d.]+)[\s\-~到至%,]*([\d.]+)/);
+  if (toRange) {
+    f.turnover_min = parseFloat(toRange[1]);
+    f.turnover_max = parseFloat(toRange[2]);
+    matched.add('turnover');
+  } else {
+    const toMin = text.match(/换手率[大于≥超过]*[\s]*([\d.]+)/);
+    if (toMin) { f.turnover_min = parseFloat(toMin[1]); matched.add('turnover'); }
+  }
+
+  // PE
+  const peRange = text.match(/PE[\s]*([\d.]+)[\s\-~到至]*([\d.]+)/);
+  if (peRange) {
+    f.pe_min = parseFloat(peRange[1]); f.pe_max = parseFloat(peRange[2]);
+  }
+
+  // Apply to form
+  applyFilters(f, matched);
+}
+
+function applyFilters(f, matched) {
+  if (f.exclude_st !== undefined) document.getElementById('f_exclude_st').value = f.exclude_st;
+  if (f.min_listed_days !== undefined) document.getElementById('f_min_listed_days').value = f.min_listed_days;
+  if (f.float_mcap_min !== undefined) document.getElementById('f_float_mcap_min').value = f.float_mcap_min;
+  if (f.float_mcap_max !== undefined) document.getElementById('f_float_mcap_max').value = f.float_mcap_max;
+  if (f.chg_20d_min !== undefined) document.getElementById('f_chg_20d_min').value = f.chg_20d_min;
+  if (f.chg_20d_max !== undefined) document.getElementById('f_chg_20d_max').value = f.chg_20d_max;
+  if (f.ma_bullish !== undefined) document.getElementById('f_ma_bullish').value = f.ma_bullish;
+  if (f.close_above_ma5 !== undefined) document.getElementById('f_close_above_ma5').value = f.close_above_ma5;
+  if (f.min_limit_up_10d !== undefined) document.getElementById('f_min_limit_up_10d').value = f.min_limit_up_10d;
+  if (f.turnover_min !== undefined) document.getElementById('f_turnover_min').value = f.turnover_min;
+  if (f.turnover_max !== undefined) document.getElementById('f_turnover_max').value = f.turnover_max;
+
+  // Highlight matched fields
+  clearNLHighlights();
+  matched.forEach(field => {
+    const el = document.querySelector(`.cond-item[data-field="${field}"]`);
+    if (el) el.classList.add('matched');
+    setTimeout(() => { if (el) el.classList.remove('matched'); }, 2000);
+  });
+}
+
+function clearNLHighlights() {
+  document.querySelectorAll('.cond-item.matched').forEach(el => el.classList.remove('matched'));
+}
+
+// ── Collect filters ──
 function getFilters() {
   return {
     exclude_st: document.getElementById('f_exclude_st').value === '1',
@@ -286,46 +459,31 @@ function getFilters() {
   };
 }
 
-// ── Build API URL ──
 function buildUrl() {
   const f = getFilters();
-  const params = new URLSearchParams();
-  params.set('limit', '200');
-  params.set('exclude_st', f.exclude_st ? 'true' : 'false');
-  params.set('min_listed_days', f.min_listed_days);
-  params.set('float_mcap_min', f.float_mcap_min);
-  params.set('float_mcap_max', f.float_mcap_max);
-  params.set('chg_20d_min', f.chg_20d_min);
-  params.set('chg_20d_max', f.chg_20d_max);
-  params.set('ma_bullish', f.ma_bullish ? 'true' : 'false');
-  params.set('close_above_ma5', f.close_above_ma5 ? 'true' : 'false');
-  params.set('min_limit_up_10d', f.min_limit_up_10d);
-  params.set('turnover_min', f.turnover_min);
-  params.set('turnover_max', f.turnover_max);
-  params.set('sort', currentSort);
-  params.set('full_market', screenerMode === 'full' ? 'true' : 'false');
-  return '/api/screener?' + params.toString();
+  const p = new URLSearchParams();
+  p.set('limit','200'); p.set('exclude_st', f.exclude_st);
+  p.set('min_listed_days', f.min_listed_days); p.set('float_mcap_min', f.float_mcap_min);
+  p.set('float_mcap_max', f.float_mcap_max); p.set('chg_20d_min', f.chg_20d_min);
+  p.set('chg_20d_max', f.chg_20d_max); p.set('ma_bullish', f.ma_bullish);
+  p.set('close_above_ma5', f.close_above_ma5); p.set('min_limit_up_10d', f.min_limit_up_10d);
+  p.set('turnover_min', f.turnover_min); p.set('turnover_max', f.turnover_max);
+  p.set('sort', currentSort); p.set('full_market', screenerMode === 'full');
+  return '/api/screener?' + p.toString();
 }
 
 // ── Run Analysis ──
 async function runAnalysis() {
   const btn = document.getElementById('btnAnalyze');
-  btn.disabled = true;
-  btn.textContent = '⏳ 分析中...';
-
+  btn.disabled = true; btn.textContent = '⏳ 分析中...';
   document.getElementById('loading').classList.add('show');
   document.getElementById('errorMsg').classList.remove('show');
   document.getElementById('errorMsg').textContent = '';
   document.getElementById('resultsSection').style.display = 'none';
   document.getElementById('emptyState').style.display = 'none';
-
   try {
-    const url = buildUrl();
-    const resp = await fetch(url);
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.detail || `HTTP ${resp.status}`);
-    }
+    const resp = await fetch(buildUrl());
+    if (!resp.ok) { const err = await resp.json(); throw new Error(err.detail || `HTTP ${resp.status}`); }
     const data = await resp.json();
     results = data.data || [];
     document.getElementById('updateTime').textContent = '更新: ' + (data.update_time || '--');
@@ -336,215 +494,283 @@ async function runAnalysis() {
     document.getElementById('emptyState').style.display = 'block';
   } finally {
     document.getElementById('loading').classList.remove('show');
-    btn.disabled = false;
-    btn.textContent = '🔍 开始分析';
+    btn.disabled = false; btn.textContent = '🔍 开始分析';
   }
 }
 
 // ── Render Results ──
 function renderResults(data) {
   const section = document.getElementById('resultsSection');
-
   if (!results.length) {
-    document.getElementById('emptyState').style.display = 'block';
-    section.style.display = 'none';
-    document.getElementById('emptyState').querySelector('p').innerHTML =
-      '<b>当前股票池（209只精选股）未找到符合条件的股票</b><br><br>' +
-      '<span style="font-size:12px;color:#999">建议尝试：</span><br>' +
-      '<span style="font-size:13px">1. 放宽流通市值范围（如 10~500亿）<br>' +
-      '2. 降低涨停次数要求（设为 0）<br>' +
-      '3. 取消均线多头限制<br>' +
-      '4. 扩大换手率范围</span>';
+    document.getElementById('emptyState').style.display = 'block'; section.style.display = 'none';
     return;
   }
+  section.style.display = 'block'; document.getElementById('emptyState').style.display = 'none';
 
-  section.style.display = 'block';
-  document.getElementById('emptyState').style.display = 'none';
+  const avgScore = (results.reduce((s,r)=>s+r.score,0)/results.length).toFixed(1);
+  const sectors = {}; results.forEach(r=>{ sectors[r.sector]=(sectors[r.sector]||0)+1; });
+  const topSector = Object.entries(sectors).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('summaryBar').innerHTML =
+    `<div class="stat"><div class="num">${results.length}</div><div class="lbl">符合条件</div></div>
+     <div class="stat"><div class="num">${avgScore}</div><div class="lbl">平均评分</div></div>
+     <div class="stat"><div class="num">${topSector?topSector[0]:'--'}</div><div class="lbl">最多行业</div></div>
+     <div class="stat"><div class="num">${Object.keys(sectors).length}</div><div class="lbl">涉及行业</div></div>`;
 
-  // Summary bar
-  const avgScore = (results.reduce((s, r) => s + r.score, 0) / results.length).toFixed(1);
-  const sectors = {};
-  results.forEach(r => { sectors[r.sector] = (sectors[r.sector] || 0) + 1; });
-  const topSector = Object.entries(sectors).sort((a,b) => b[1]-a[1])[0];
-
-  document.getElementById('summaryBar').innerHTML = `
-    <div class="stat"><div class="num">${results.length}</div><div class="lbl">符合条件</div></div>
-    <div class="stat"><div class="num">${avgScore}</div><div class="lbl">平均评分</div></div>
-    <div class="stat"><div class="num">${topSector ? topSector[0] : '--'}</div><div class="lbl">最多行业</div></div>
-    <div class="stat"><div class="num">${Object.keys(sectors).length}</div><div class="lbl">涉及行业</div></div>
-  `;
-
-  // Table
   const tbody = document.getElementById('resultsBody');
-  tbody.innerHTML = results.map(r => {
+  tbody.innerHTML = results.map((r, i) => {
     const chgCls = r.change_pct > 0 ? 'up' : r.change_pct < 0 ? 'down' : '';
-    const maCls = r.ma_status === '多头' ? 'tag tag-bull' :
-      r.ma_status === '空头' ? 'tag tag-bear' : 'tag tag-neutral';
-    const macdCls = r.macd_status === 'golden' ? 'tag tag-gold' :
-      r.macd_status === 'positive' ? 'tag tag-bull' : 'tag tag-neutral';
-    return `<tr>
+    const maCls = r.ma_status === '多头' ? 'tag tag-bull' : r.ma_status === '空头' ? 'tag tag-bear' : 'tag tag-neutral';
+    return `<tr onclick="viewKline('${r.code}','${r.name}')" title="点击查看 ${r.name} 的K线图">
       <td><span class="stock-code">${r.code}</span></td>
       <td><span class="stock-name">${r.name}</span></td>
       <td>${r.price.toFixed(2)}</td>
-      <td class="${chgCls}">${r.change_pct > 0 ? '+' : ''}${r.change_pct.toFixed(2)}%</td>
-      <td>${r.pe ? r.pe.toFixed(1) : '--'}</td>
-      <td>${r.float_mcap ? r.float_mcap.toFixed(1) + '亿' : '--'}</td>
+      <td class="${chgCls}">${r.change_pct>0?'+':''}${r.change_pct.toFixed(2)}%</td>
+      <td>${r.pe?r.pe.toFixed(1):'--'}</td>
+      <td>${r.float_mcap?r.float_mcap.toFixed(1)+'亿':'--'}</td>
       <td>${r.turnover.toFixed(2)}%</td>
-      <td>${r.chg_20d ? (r.chg_20d > 0 ? '+' : '') + r.chg_20d.toFixed(2) + '%' : '--'}</td>
+      <td>${r.chg_20d?(r.chg_20d>0?'+':'')+r.chg_20d.toFixed(2)+'%':'--'}</td>
       <td><span class="${maCls}">${r.ma_status}</span></td>
       <td>${r.limit_up_count_10d}</td>
       <td><b>${r.score.toFixed(1)}</b></td>
     </tr>`;
   }).join('');
-
-  // Re-apply sort arrows
   updateSortArrows();
-
-  // Analysis
   renderAnalysis();
 }
 
-// ── Sort Table ──
 function sortTable(field) {
-  if (currentSort === field) {
-    sortDir = -sortDir;
-  } else {
-    currentSort = field;
-    sortDir = -1;
-  }
-  // Re-fetch from server
+  if (currentSort === field) sortDir = -sortDir; else { currentSort = field; sortDir = -1; }
   runAnalysis();
 }
-
 function updateSortArrows() {
-  document.querySelectorAll('th .sort-arrow').forEach(el => el.textContent = '');
+  document.querySelectorAll('th .sort-arrow').forEach(el=>el.textContent='');
   const th = document.querySelector(`th[data-sort="${currentSort}"]`);
-  if (th) th.querySelector('.sort-arrow').textContent = sortDir === -1 ? ' ▼' : ' ▲';
+  if(th) th.querySelector('.sort-arrow').textContent = sortDir === -1 ? ' ▼' : ' ▲';
 }
 
-// ── Analysis Report ──
 function renderAnalysis() {
   const grid = document.getElementById('analysisGrid');
-
-  // 1. Key stats
-  const peList = results.filter(r => r.pe).map(r => r.pe);
-  const avgPE = peList.length ? (peList.reduce((a,b)=>a+b,0)/peList.length).toFixed(1) : '--';
-  const medPE = peList.length ? median(peList).toFixed(1) : '--';
-
-  const chgList = results.map(r => r.change_pct);
+  const peList = results.filter(r=>r.pe).map(r=>r.pe);
+  const avgPE = peList.length?(peList.reduce((a,b)=>a+b,0)/peList.length).toFixed(1):'--';
+  const medPE = peList.length?median(peList).toFixed(1):'--';
+  const chgList = results.map(r=>r.change_pct);
   const avgChg = (chgList.reduce((a,b)=>a+b,0)/chgList.length).toFixed(2);
-
-  const bullCount = results.filter(r => r.ma_status === '多头').length;
-  const goldenCount = results.filter(r => r.macd_status === 'golden').length;
-  const limitUpTotal = results.reduce((s, r) => s + r.limit_up_count_10d, 0);
-
-  // 2. Sector breakdown
-  const sectors = {};
-  results.forEach(r => {
-    const s = r.sector || '其他';
-    sectors[s] = (sectors[s] || 0) + 1;
-  });
-  const sectorHTML = Object.entries(sectors)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, cnt]) => `<div class="item"><span class="label">${name}</span><span class="value">${cnt} 只 (${(cnt/results.length*100).toFixed(0)}%)</span></div>`)
-    .join('');
-
-  // 3. Score distribution
-  const scoreBuckets = { '90-100': 0, '80-90': 0, '70-80': 0, '60-70': 0, '<60': 0 };
-  results.forEach(r => {
-    if (r.score >= 90) scoreBuckets['90-100']++;
-    else if (r.score >= 80) scoreBuckets['80-90']++;
-    else if (r.score >= 70) scoreBuckets['70-80']++;
-    else if (r.score >= 60) scoreBuckets['60-70']++;
-    else scoreBuckets['<60']++;
-  });
-  const scoreHTML = Object.entries(scoreBuckets)
-    .filter(([_, c]) => c > 0)
-    .map(([range, cnt]) => {
-      const bar = '█'.repeat(Math.max(1, Math.round(cnt / results.length * 20)));
-      return `<div class="item"><span class="label">${range}</span><span class="value">${bar} ${cnt}只</span></div>`;
-    }).join('');
-
-  // 4. Risk/market cap distribution
-  const mcapList = results.filter(r => r.float_mcap).map(r => r.float_mcap);
-  const avgMcap = mcapList.length ? (mcapList.reduce((a,b)=>a+b,0)/mcapList.length).toFixed(1) : '--';
-
-  // 5. Insights
+  const bullCount = results.filter(r=>r.ma_status==='多头').length;
+  const goldenCount = results.filter(r=>r.macd_status==='golden').length;
+  const limitUpTotal = results.reduce((s,r)=>s+r.limit_up_count_10d,0);
+  const sectors = {}; results.forEach(r=>{ const s=r.sector||'其他'; sectors[s]=(sectors[s]||0)+1; });
+  const sectorHTML = Object.entries(sectors).sort((a,b)=>b[1]-a[1])
+    .map(([n,c])=>`<div class="item"><span class="label">${n}</span><span class="value">${c} 只 (${(c/results.length*100).toFixed(0)}%)</span></div>`).join('');
+  const scoreBuckets = {'90-100':0,'80-90':0,'70-80':0,'60-70':0,'<60':0};
+  results.forEach(r=>{ if(r.score>=90)scoreBuckets['90-100']++; else if(r.score>=80)scoreBuckets['80-90']++; else if(r.score>=70)scoreBuckets['70-80']++; else if(r.score>=60)scoreBuckets['60-70']++; else scoreBuckets['<60']++; });
+  const scoreHTML = Object.entries(scoreBuckets).filter(([_,c])=>c>0)
+    .map(([range,cnt])=>{ const bar='█'.repeat(Math.max(1,Math.round(cnt/results.length*20))); return `<div class="item"><span class="label">${range}</span><span class="value">${bar} ${cnt}只</span></div>`; }).join('');
+  const mcapList = results.filter(r=>r.float_mcap).map(r=>r.float_mcap);
+  const avgMcap = mcapList.length?(mcapList.reduce((a,b)=>a+b,0)/mcapList.length).toFixed(1):'--';
   const insights = [];
-  if (results.length < 5) insights.push({ cls: 'warn', txt: `仅筛选出 ${results.length} 只股票，条件较严格，可适当放宽` });
-  else if (results.length > 100) insights.push({ cls: 'insight', txt: `筛选出 ${results.length} 只股票，数量较多，可收紧条件提高精准度` });
-  else insights.push({ cls: 'good', txt: `筛选出 ${results.length} 只股票，数量适中，条件设置合理` });
-
-  if (bullCount === results.length) insights.push({ cls: 'good', txt: '全部股票均处于均线多头排列，趋势强劲' });
-  else if (bullCount > results.length * 0.7) insights.push({ cls: 'insight', txt: `${bullCount}/${results.length} 只处于均线多头排列，整体趋势向好` });
-
-  if (avgPE !== '--' && parseFloat(avgPE) > 100) insights.push({ cls: 'warn', txt: `平均PE ${avgPE}，估值整体偏高，注意风险` });
-  else if (avgPE !== '--' && parseFloat(avgPE) < 20) insights.push({ cls: 'good', txt: `平均PE ${avgPE}，估值整体偏低，具有一定安全边际` });
-
-  if (goldenCount > 0) insights.push({ cls: 'good', txt: `${goldenCount} 只出现MACD金叉信号` });
-
-  if (limitUpTotal > 0) insights.push({ cls: 'insight', txt: `近10天累计涨停 ${limitUpTotal} 次，存在短线活跃资金关注` });
-
-  grid.innerHTML = `
-    <div class="analysis-box">
-      <h4>📊 核心统计</h4>
-      <div class="item"><span class="label">平均PE</span><span class="value">${avgPE}</span></div>
-      <div class="item"><span class="label">PE中位数</span><span class="value">${medPE}</span></div>
-      <div class="item"><span class="label">平均涨跌幅</span><span class="value">${avgChg > 0 ? '+' : ''}${avgChg}%</span></div>
-      <div class="item"><span class="label">平均流通市值</span><span class="value">${avgMcap} 亿</span></div>
-      <div class="item"><span class="label">多头排列</span><span class="value">${bullCount} / ${results.length}</span></div>
-      <div class="item"><span class="label">MACD金叉</span><span class="value">${goldenCount} 只</span></div>
-    </div>
-    <div class="analysis-box">
-      <h4>🏭 行业分布</h4>
-      ${sectorHTML || '<div class="item"><span class="label">--</span></div>'}
-    </div>
-    <div class="analysis-box">
-      <h4>⭐ 评分分布</h4>
-      ${scoreHTML || '<div class="item"><span class="label">--</span></div>'}
-      <div style="margin-top: 8px;">
-        ${insights.map(i => `<div class="insight ${i.cls}">${i.txt}</div>`).join('')}
-      </div>
-    </div>
-  `;
+  if(results.length<5)insights.push({cls:'warn',txt:`仅筛选出 ${results.length} 只股票，条件较严格`});
+  else if(results.length>100)insights.push({cls:'insight',txt:`筛选出 ${results.length} 只股票，数量较多`});
+  else insights.push({cls:'good',txt:`筛选出 ${results.length} 只股票，数量适中`});
+  if(bullCount===results.length)insights.push({cls:'good',txt:'全部股票均处于均线多头排列，趋势强劲'});
+  else if(bullCount>results.length*0.7)insights.push({cls:'insight',txt:`${bullCount}/${results.length} 只处于均线多头排列`});
+  if(avgPE!=='--'&&parseFloat(avgPE)>100)insights.push({cls:'warn',txt:`平均PE ${avgPE}，估值偏高`});
+  else if(avgPE!=='--'&&parseFloat(avgPE)<20)insights.push({cls:'good',txt:`平均PE ${avgPE}，估值偏低`});
+  if(goldenCount>0)insights.push({cls:'good',txt:`${goldenCount} 只出现MACD金叉信号`});
+  if(limitUpTotal>0)insights.push({cls:'insight',txt:`近10天累计涨停 ${limitUpTotal} 次`});
+  grid.innerHTML = `<div class="analysis-box"><h4>📊 核心统计</h4>
+    <div class="item"><span class="label">平均PE</span><span class="value">${avgPE}</span></div>
+    <div class="item"><span class="label">PE中位数</span><span class="value">${medPE}</span></div>
+    <div class="item"><span class="label">平均涨跌幅</span><span class="value">${avgChg>0?'+':''}${avgChg}%</span></div>
+    <div class="item"><span class="label">平均流通市值</span><span class="value">${avgMcap} 亿</span></div>
+    <div class="item"><span class="label">多头排列</span><span class="value">${bullCount} / ${results.length}</span></div>
+    <div class="item"><span class="label">MACD金叉</span><span class="value">${goldenCount} 只</span></div></div>
+    <div class="analysis-box"><h4>🏭 行业分布</h4>${sectorHTML||'<div class="item">--</div>'}</div>
+    <div class="analysis-box"><h4>⭐ 评分分布</h4>${scoreHTML||'<div class="item">--</div>'}<div style="margin-top:8px">${insights.map(i=>`<div class="insight ${i.cls}">${i.txt}</div>`).join('')}</div></div>`;
 }
 
-function median(arr) {
-  const sorted = [...arr].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-// ── Reset to defaults ──
+function median(arr) { const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
 function resetDefaults() {
-  document.getElementById('f_exclude_st').value = '1';
-  document.getElementById('f_min_listed_days').value = 60;
-  document.getElementById('f_float_mcap_min').value = 30;
-  document.getElementById('f_float_mcap_max').value = 120;
-  document.getElementById('f_chg_20d_min').value = 0;
-  document.getElementById('f_chg_20d_max').value = 50;
-  document.getElementById('f_ma_bullish').value = '1';
-  document.getElementById('f_close_above_ma5').value = '1';
-  document.getElementById('f_min_limit_up_10d').value = 1;
-  document.getElementById('f_turnover_min').value = 3;
-  document.getElementById('f_turnover_max').value = 15;
+  document.getElementById('f_exclude_st').value='1'; document.getElementById('f_min_listed_days').value=60;
+  document.getElementById('f_float_mcap_min').value=30; document.getElementById('f_float_mcap_max').value=120;
+  document.getElementById('f_chg_20d_min').value=0; document.getElementById('f_chg_20d_max').value=50;
+  document.getElementById('f_ma_bullish').value='1'; document.getElementById('f_close_above_ma5').value='1';
+  document.getElementById('f_min_limit_up_10d').value=1; document.getElementById('f_turnover_min').value=3;
+  document.getElementById('f_turnover_max').value=15;
+}
+function exportCSV() {
+  if(!results.length)return alert('没有数据可导出');
+  const h=['代码','名称','现价','涨跌幅%','PE','PB','流通市值','换手率%','20日涨幅%','均线','RSI','MACD','涨停(10d)','评分'];
+  const rows=results.map(r=>[r.code,r.name,r.price,r.change_pct,r.pe||'',r.pb||'',r.float_mcap,r.turnover,r.chg_20d||'',r.ma_status,r.rsi_14||'',r.macd_status,r.limit_up_count_10d,r.score]);
+  const csv='\uFEFF'+h.join(',')+'\n'+rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`选股结果_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  URL.revokeObjectURL(a.href);
 }
 
-// ── Export CSV ──
-function exportCSV() {
-  if (!results.length) return alert('没有数据可导出');
-  const headers = ['代码','名称','现价','涨跌幅%','PE','PB','流通市值','换手率%','20日涨幅%','均线','RSI','MACD','涨停(10d)','评分'];
-  const rows = results.map(r => [
-    r.code, r.name, r.price, r.change_pct, r.pe||'', r.pb||'',
-    r.float_mcap, r.turnover, r.chg_20d||'', r.ma_status,
-    r.rsi_14||'', r.macd_status, r.limit_up_count_10d, r.score
-  ]);
-  const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `选股结果_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-  URL.revokeObjectURL(url);
+// ═══════════════════════════════════════════
+// 个股 K线 弹窗
+// ═══════════════════════════════════════════
+
+async function viewKline(code, name) {
+  document.getElementById('klineTitle').textContent = `${name} (${code}) — K线图`;
+  document.getElementById('klineModal').classList.add('show');
+  document.getElementById('klineStats').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--sub);"><div class="spinner" style="margin:0 auto 8px;"></div>加载K线数据...</div>';
+  document.getElementById('klineMA').innerHTML = '';
+
+  try {
+    const resp = await fetch(`/api/stock/${code}/kline?period=day&count=120`);
+    if (!resp.ok) throw new Error('K线数据获取失败');
+    const kdata = await resp.json();
+    drawKline(kdata, code, name);
+  } catch(e) {
+    document.getElementById('klineStats').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--red);">⚠ ${e.message}</div>`;
+  }
+}
+
+function closeKline() {
+  document.getElementById('klineModal').classList.remove('show');
+}
+
+// Click overlay to close
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('klineModal').addEventListener('click', function(e) {
+    if (e.target === this) closeKline();
+  });
+});
+
+function drawKline(kdata, code, name) {
+  const bars = kdata.data || [];
+  const ma = kdata.ma || {};
+  if (!bars.length) return;
+
+  // Reverse: oldest first
+  bars.reverse();
+
+  const w = 950, h = 400;
+  const pad = { top: 30, right: 80, bottom: 60, left: 60 };
+  const pw = w - pad.left - pad.right;
+  const ph = h - pad.top - pad.bottom;
+
+  const highs = bars.map(b => b.high);
+  const lows = bars.map(b => b.low);
+  const maxH = Math.max(...highs);
+  const minL = Math.min(...lows);
+  const range = maxH - minL || 1;
+  const scaleY = ph / range;
+  const scaleX = pw / (bars.length - 1 || 1);
+
+  const canvas = document.getElementById('klineCanvas');
+  canvas.width = w * 2; canvas.height = h * 2;
+  canvas.style.width = '950px'; canvas.style.height = '400px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + (ph / 5) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    const val = maxH - (range / 5) * i;
+    ctx.fillStyle = '#9ca3af'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(2), pad.left - 6, y + 4);
+  }
+
+  // Date labels
+  ctx.fillStyle = '#9ca3af'; ctx.font = '10px sans-serif';
+  const showDates = [0, Math.floor(bars.length/4), Math.floor(bars.length/2), Math.floor(bars.length*3/4), bars.length-1];
+  showDates.forEach((idx, i) => {
+    if (idx >= bars.length) return;
+    const x = pad.left + idx * scaleX;
+    ctx.save(); ctx.translate(x, h - pad.bottom + 10); ctx.rotate(-0.5);
+    ctx.fillText((bars[idx].date||'').slice(5), 0, 0); ctx.restore();
+    // Tick
+    ctx.strokeStyle = '#d0d0d0'; ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, h - pad.bottom); ctx.stroke();
+  });
+
+  // Volume bars (bottom)
+  const volMax = Math.max(...bars.map(b => b.volume || 0), 1);
+  const volH = 40; const volTop = h - pad.bottom + 18;
+  bars.forEach((b, i) => {
+    const x = pad.left + i * scaleX;
+    const volPct = (b.volume || 0) / volMax;
+    const barH = volPct * volH;
+    ctx.fillStyle = b.close >= b.open ? 'rgba(220,38,38,0.4)' : 'rgba(22,163,74,0.4)';
+    ctx.fillRect(Math.max(0, x - 1), volTop - barH, Math.max(2, scaleX * 0.6), barH);
+  });
+
+  // Candlesticks
+  const barW = Math.max(1, scaleX * 0.65);
+  bars.forEach((b, i) => {
+    const x = pad.left + i * scaleX;
+    const isUp = b.close >= b.open;
+    const bodyTop = pad.top + (maxH - (isUp ? b.close : b.open)) * scaleY;
+    const bodyBot = pad.top + (maxH - (isUp ? b.open : b.close)) * scaleY;
+    const bodyH = Math.max(1, bodyBot - bodyTop);
+    const wickH = pad.top + (maxH - b.high) * scaleY;
+    const wickL = pad.top + (maxH - b.low) * scaleY;
+
+    // Wick
+    ctx.strokeStyle = isUp ? '#dc2626' : '#16a34a';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, wickH); ctx.lineTo(x, wickL); ctx.stroke();
+    // Body
+    ctx.fillStyle = isUp ? '#dc2626' : '#16a34a';
+    ctx.fillRect(x - barW/2, bodyTop, barW, bodyH);
+  });
+
+  // MA lines
+  const maColors = { ma5: '#f59e0b', ma10: '#3b82f6', ma20: '#8b5cf6' };
+  Object.entries(maColors).forEach(([key, color]) => {
+    const vals = ma[key] || [];
+    if (!vals.length) return;
+    ctx.strokeStyle = color; ctx.lineWidth = 1.2; ctx.setLineDash([4, 2]);
+    ctx.beginPath();
+    let started = false;
+    bars.forEach((b, i) => {
+      const v = vals[i];
+      if (v == null || v === 0) { started = false; return; }
+      const x = pad.left + i * scaleX;
+      const y = pad.top + (maxH - v) * scaleY;
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Latest price line
+  if (bars.length) {
+    const lastClose = bars[bars.length-1].close;
+    const y = pad.top + (maxH - lastClose) * scaleY;
+    ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 0.8; ctx.setLineDash([2, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#6b7280'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+    ctx.fillText(lastClose.toFixed(2), w - pad.right + 4, y + 3);
+  }
+
+  // Stats
+  const last = bars[bars.length - 1];
+  const prev = bars.length > 1 ? bars[bars.length - 2] : last;
+  const chgPct = prev.close ? ((last.close - prev.close) / prev.close * 100) : 0;
+  const chg20 = bars.length >= 21 ? ((bars[bars.length-1].close - bars[bars.length-21].close) / bars[bars.length-21].close * 100) : null;
+  const ma5v = ma.ma5 ? ma.ma5[ma.ma5.length-1] : null;
+
+  document.getElementById('klineStats').innerHTML = `
+    <div class="modal-stat"><div class="val" style="color:${chgPct>=0?'var(--red)':'var(--green)'}">${last.close.toFixed(2)}</div><div class="lbl">收盘价</div></div>
+    <div class="modal-stat"><div class="val" style="color:${chgPct>=0?'var(--red)':'var(--green)'}">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</div><div class="lbl">日涨跌</div></div>
+    <div class="modal-stat"><div class="val">${last.volume ? (last.volume/10000).toFixed(0)+'万' : '--'}</div><div class="lbl">成交量</div></div>
+    <div class="modal-stat"><div class="val">${last.high.toFixed(2)}</div><div class="lbl">最高</div></div>
+    <div class="modal-stat"><div class="val">${last.low.toFixed(2)}</div><div class="lbl">最低</div></div>
+    <div class="modal-stat"><div class="val">${chg20 != null ? (chg20>=0?'+':'')+chg20.toFixed(1)+'%' : '--'}</div><div class="lbl">20日涨幅</div></div>
+  `;
+
+  document.getElementById('klineMA').innerHTML = `
+    <span style="color:#f59e0b">MA5: ${ma5v ? ma5v.toFixed(2) : '--'}</span>
+    <span style="color:#3b82f6">MA10: ${ma.ma10 ? ma.ma10[ma.ma10.length-1]?.toFixed(2) : '--'}</span>
+    <span style="color:#8b5cf6">MA20: ${ma.ma20 ? ma.ma20[ma.ma20.length-1]?.toFixed(2) : '--'}</span>
+  `;
 }
 </script>
 </body>
