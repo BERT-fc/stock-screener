@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.json
+test_*.py
+debug_*.py
+启动.bat
+.env
+*.log
