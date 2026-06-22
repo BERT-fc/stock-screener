@@ -120,6 +120,25 @@ async def _get_stock_list() -> list[dict]:
 
 
 # ═══════════════════════════════════════════
+# 个股K线（放在腾讯行情之前，避免路由冲突）
+# ═══════════════════════════════════════════
+
+@app.get("/api/kline-detail/{code}")
+async def stock_kline_detail(code: str, period: str = Query("day", description="day|week|month"), count: int = Query(120, ge=10, le=240)):
+    """获取单只股票的K线数据（含均线）"""
+    sina = get_sina()
+    data = await sina.get_kline_with_ma(code, period=period, count=count)
+    if not data or not data.get("data"):
+        return {"code": code, "period": period, "data": [], "ma": {}}
+    return {
+        "code": code,
+        "period": period,
+        "data": data["data"],
+        "ma": data["ma"],
+    }
+
+
+# ═══════════════════════════════════════════
 # 行情接口（腾讯财经）
 # ═══════════════════════════════════════════
 
@@ -542,25 +561,6 @@ async def screener(
     )
     await cache.set(cache_key, resp, CACHE_TTL["default"])
     return resp
-
-
-# ═══════════════════════════════════════════
-# 个股K线
-# ═══════════════════════════════════════════
-
-@app.get("/api/stock/{code}/kline")
-async def stock_kline(code: str, period: str = Query("day", description="day|week|month"), count: int = Query(120, ge=10, le=240)):
-    """获取单只股票的K线数据（含均线）"""
-    sina = get_sina()
-    data = await sina.get_kline_with_ma(code, period=period, count=count)
-    if not data or not data.get("data"):
-        raise HTTPException(404, f"无法获取 {code} 的K线数据")
-    return {
-        "code": code,
-        "period": period,
-        "data": data["data"],
-        "ma": data["ma"],
-    }
 
 
 # ═══════════════════════════════════════════

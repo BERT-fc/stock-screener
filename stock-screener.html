@@ -618,7 +618,7 @@ async function viewKline(code, name) {
   document.getElementById('klineMA').innerHTML = '';
 
   try {
-    const resp = await fetch(`/api/stock/${code}/kline?period=day&count=120`);
+    const resp = await fetch(`/api/kline-detail/${code}?period=day&count=120`);
     if (!resp.ok) throw new Error('K线数据获取失败');
     const kdata = await resp.json();
     drawKline(kdata, code, name);
