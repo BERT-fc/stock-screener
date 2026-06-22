@@ -134,7 +134,7 @@ tr.selected td { background: #eff6ff; }
   <!-- Header -->
   <div class="header">
     <div>
-      <h1>📊 股票条件选股分析 <span class="badge">v2.2</span></h1>
+      <h1>📊 股票条件选股分析 <span class="badge">v2.3</span></h1>
     </div>
     <div class="header-actions">
       <span class="time" id="updateTime">就绪</span>
@@ -268,18 +268,17 @@ tr.selected td { background: #eff6ff; }
       <div class="card-title"><span class="icon">📈</span> 综合分析报告</div>
       <div class="analysis-grid" id="analysisGrid"></div>
     </div>
+  </div>
 
-    <!-- Market Data Panel -->
-    <div class="card">
-      <div class="card-title"><span class="icon">📊</span> 涨停板统计 <button class="btn btn-secondary btn-sm" onclick="loadLimitUp()" style="margin-left:auto">⟳ 刷新</button></div>
-      <div id="limitUpPanel" style="font-size:13px;color:var(--sub);padding:8px 0;">加载中...</div>
-    </div>
+  <!-- Market Data Panels (always visible) -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> 涨停板统计 <button class="btn btn-secondary btn-sm" onclick="loadLimitUp()" style="margin-left:auto">⟳ 刷新</button></div>
+    <div id="limitUpPanel" style="font-size:13px;color:var(--sub);padding:8px 0;">加载中...</div>
+  </div>
 
-    <div class="card">
-      <div class="card-title"><span class="icon">💰</span> 主力资金流向 <button class="btn btn-secondary btn-sm" onclick="loadMoneyFlow()" style="margin-left:auto">⟳ 刷新</button></div>
-      <div id="moneyFlowPanel" style="font-size:13px;color:var(--sub);padding:8px 0;">加载中...</div>
-    </div>
-
+  <div class="card">
+    <div class="card-title"><span class="icon">💰</span> 主力资金流向 <button class="btn btn-secondary btn-sm" onclick="loadMoneyFlow()" style="margin-left:auto">⟳ 刷新</button></div>
+    <div id="moneyFlowPanel" style="font-size:13px;color:var(--sub);padding:8px 0;">加载中...</div>
   </div>
 
   <!-- Empty State -->
@@ -750,14 +749,11 @@ function renderMoneyFlow(d) {
   panel.innerHTML = html;
 }
 
-// Auto-load market data when results show up
-const _origRenderResults = renderResults;
-const _renderResultsWrapper = function(data) {
-  _origRenderResults(data);
+// Auto-load market data on page load
+document.addEventListener('DOMContentLoaded', () => {
   loadLimitUp();
   loadMoneyFlow();
-};
-renderResults = _renderResultsWrapper;
+});
 
 // ═══════════════════════════════════════════
 // 个股 K线 弹窗
