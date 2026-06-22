@@ -297,11 +297,11 @@ class EastMoneyFetcher(BaseFetcher):
     async def get_limit_up_stats(self) -> dict:
         """
         获取涨停板综合统计（含连板高度分类）
-        返回: { total_limit_up, total_limit_down, limit_up_open, board_stats, up_stocks, down_stocks }
+        返回: { total_limit_up, total_limit_down, limit_up_open, board_levels, up_stocks, down_stocks }
         """
         params = {
             "pn": "1",
-            "pz": "2000",
+            "pz": "5000",
             "po": "0",
             "np": "1",
             "ut": "bd1d9ddb04089700cf9c27f6f7426281",
@@ -309,7 +309,7 @@ class EastMoneyFetcher(BaseFetcher):
             "invt": "2",
             "fid": "f3",
             "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:0+t:81",
-            "fields": "f2,f3,f4,f8,f10,f12,f14,f15,f16,f17,f23,f100,f115,f62,f184",
+            "fields": "f2,f3,f12,f14,f15,f16,f17,f20,f23,f100,f62",
         }
         try:
             text = await self._request(self.STOCK_LIST_URL, params=params)
@@ -331,30 +331,51 @@ class EastMoneyFetcher(BaseFetcher):
                     "price": self.safe_float(row.get("f2")),
                     "change_pct": chg_pct,
                     "turnover": self.safe_float(row.get("f15")),
-                    "amount": self.safe_float(row.get("f23")),  # 成交额
-                    "pe": self.safe_float(row.get("f9")),
+                    "amount": self.safe_float(row.get("f23")),  # 成交额(万)
                     "total_mcap": self.safe_float(row.get("f20")),
                     "sector": self._get_industry(row.get("f100", "")),
                     "high": self.safe_float(row.get("f17")),
                     "low": self.safe_float(row.get("f16")),
-                    "open": self.safe_float(row.get("f4")),
                 })
 
             if not stocks:
                 return self._empty_limit_stats()
 
-            # 分类
-            limit_up_stocks = [s for s in stocks if s["change_pct"] >= 9.8 and s["change_pct"] < 300]
-            limit_down_stocks = [s for s in stocks if s["change_pct"] <= -9.8 and s["change_pct"] > -300]
+            # 移除涨跌幅异常（停牌等）
+            stocks = [s for s in stocks if s["change_pct"] is not None and abs(s["change_pct"]) < 100]
 
-            # 炸板：曾涨停但未封住（高开或冲高回落超过9.8%但没封住）
+            # 按市场分类检测涨停/跌停
+            def is_limit_up(s):
+                code = s["code"]
+                cp = abs(s["change_pct"])
+                if code.startswith("bj"):
+                    return s["change_pct"] >= 29.8  # 北交所30%涨停
+                if code.startswith(("sz", "30")):
+                    return s["change_pct"] >= 19.8  # 创业板20%
+                if code.startswith("sh68"):
+                    return s["change_pct"] >= 19.8  # 科创板20%
+                return s["change_pct"] >= 9.8  # 主板10%
+
+            def is_limit_down(s):
+                code = s["code"]
+                cp = abs(s["change_pct"])
+                if code.startswith("bj"):
+                    return s["change_pct"] <= -29.8
+                if code.startswith(("sz", "30")):
+                    return s["change_pct"] <= -19.8
+                if code.startswith("sh68"):
+                    return s["change_pct"] <= -19.8
+                return s["change_pct"] <= -9.8
+
+            limit_up_stocks = [s for s in stocks if is_limit_up(s)]
+            limit_down_stocks = [s for s in stocks if is_limit_down(s)]
+
+            # 高开炸板：涨幅>8%但未封板，且最高价高于现价5%以上
             limit_up_open = [s for s in stocks
-                if 7.0 <= s["change_pct"] < 9.5
-                and s["high"] >= s["close"] * 1.08
+                if 6.0 <= s["change_pct"] < 9.5
+                and s["high"] > s["price"] * 1.03
             ]
 
-            # 连板需要通过历史K线分析获取准确连板天数
-            # 这里先按涨幅分级估算连板
             board_levels = self._classify_limit_up_levels(limit_up_stocks)
 
             return {
@@ -362,8 +383,8 @@ class EastMoneyFetcher(BaseFetcher):
                 "total_limit_down": len(limit_down_stocks),
                 "limit_up_open": len(limit_up_open),
                 "board_levels": board_levels,
-                "up_stocks": limit_up_stocks[:80],      # 最多返回80只涨停
-                "down_stocks": limit_down_stocks[:20],   # 最多20只跌停
+                "up_stocks": limit_up_stocks[:50],
+                "down_stocks": limit_down_stocks[:30],
                 "update_time": "",
             }
 
@@ -376,16 +397,15 @@ class EastMoneyFetcher(BaseFetcher):
         levels = {"6": 0, "5": 0, "4": 0, "3": 0, "2": 0, "1": 0}
         for s in stocks:
             cp = s["change_pct"]
-            # 连板需要连续涨停，这里用涨幅粗估
-            if cp >= 30:  # 北交所/科创
+            if cp >= 33:
                 levels["6"] += 1
-            elif cp >= 20:  # 创业板
+            elif cp >= 25:
                 levels["5"] += 1
-            elif cp >= 15:
+            elif cp >= 20:
                 levels["4"] += 1
-            elif cp >= 12:
+            elif cp >= 15:
                 levels["3"] += 1
-            elif cp >= 10.5:
+            elif cp >= 11:
                 levels["2"] += 1
             else:
                 levels["1"] += 1
@@ -395,11 +415,12 @@ class EastMoneyFetcher(BaseFetcher):
         """将东方财富板块代码转为中文行业名"""
         if not code:
             return "综合"
+        # 从BK代码提取行业（实际数据可能是"行业板块"名称）
         name = self.SECTOR_MAP.get(code, "")
         if name:
             return name
-        # 对未映射的BK代码做泛化
-        return "综合"
+        # 对BK代码去除前缀
+        return code.replace("BK", "板块") if code.startswith("BK") else "综合"
 
     def _empty_limit_stats(self) -> dict:
         return {
@@ -415,15 +436,16 @@ class EastMoneyFetcher(BaseFetcher):
         返回: { in: [{code, name, net_amount, sector, price, change_pct}],
                  out: [{code, name, net_amount, sector, price, change_pct}] }
         """
+        # 拉取较大量以确保流出侧也有足够数据
         params = {
             "pn": "1",
-            "pz": str(top_n),
+            "pz": str(max(top_n * 3, 100)),
             "po": "1",
             "np": "1",
             "ut": "bd1d9ddb04089700cf9c27f6f7426281",
             "fltt": "2",
             "invt": "2",
-            "fid": "f62",        # 按主力净流入排序
+            "fid": "f62",
             "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:0+t:81",
             "fields": "f2,f3,f12,f14,f62,f66,f69,f78,f84,f100,f184,f185",
         }
@@ -440,25 +462,25 @@ class EastMoneyFetcher(BaseFetcher):
                     continue
                 market = "sh" if code_str.startswith(("60", "68")) else \
                          "sz" if code_str.startswith(("00", "30")) else "bj"
-                net = self.safe_float(row.get("f62"))  # 主力净流入
+                net = self.safe_float(row.get("f62"))  # 主力净流入(元)
+                if net is None or net == 0:
+                    continue
                 all_flow.append({
                     "code": f"{market}{code_str}",
                     "name": row.get("f14", ""),
-                    "net_amount": net,                      # 万元
-                    "net_amount_yi": round(net / 10000, 2) if net else 0,  # 转为亿元
+                    "net_amount": net,
+                    "net_amount_yi": round(net / 100000000, 2),  # 转为亿元
                     "price": self.safe_float(row.get("f2")),
                     "change_pct": self.safe_float(row.get("f3")),
                     "sector": self._get_industry(row.get("f100", "")),
                 })
 
-            # 按净流入排序
+            # 按净流入降序
             all_flow.sort(key=lambda x: x["net_amount"] or 0, reverse=True)
 
-            # 流入TOP N (net > 0)
-            inflow = [s for s in all_flow if (s["net_amount"] or 0) > 0][:top_n]
-            # 流出TOP N (net < 0，取绝对值最大的)
-            outflow = sorted([s for s in all_flow if (s["net_amount"] or 0) < 0],
-                             key=lambda x: x["net_amount"] or 0)[:top_n]
+            inflow = [s for s in all_flow if s["net_amount"] > 0][:top_n]
+            outflow = sorted([s for s in all_flow if s["net_amount"] < 0],
+                             key=lambda x: x["net_amount"])[:top_n]
 
             return {"in": inflow, "out": outflow}
 
