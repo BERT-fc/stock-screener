@@ -268,6 +268,18 @@ tr.selected td { background: #eff6ff; }
       <div class="card-title"><span class="icon">📈</span> 综合分析报告</div>
       <div class="analysis-grid" id="analysisGrid"></div>
     </div>
+
+    <!-- Market Data Panel -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📊</span> 涨停板统计 <button class="btn btn-secondary btn-sm" onclick="loadLimitUp()" style="margin-left:auto">⟳ 刷新</button></div>
+      <div id="limitUpPanel" style="font-size:13px;color:var(--sub);padding:8px 0;">加载中...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">💰</span> 主力资金流向 <button class="btn btn-secondary btn-sm" onclick="loadMoneyFlow()" style="margin-left:auto">⟳ 刷新</button></div>
+      <div id="moneyFlowPanel" style="font-size:13px;color:var(--sub);padding:8px 0;">加载中...</div>
+    </div>
+
   </div>
 
   <!-- Empty State -->
@@ -606,6 +618,146 @@ function exportCSV() {
   a.href=URL.createObjectURL(blob); a.download=`选股结果_${new Date().toISOString().slice(0,10)}.csv`; a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ═══════════════════════════════════════════
+// 涨停板统计 + 主力资金流向
+// ═══════════════════════════════════════════
+
+async function loadLimitUp() {
+  const panel = document.getElementById('limitUpPanel');
+  panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);"><div class="spinner" style="margin:0 auto 8px;width:20px;height:20px;"></div>加载涨停数据...</div>';
+  try {
+    const resp = await fetch('/api/market/limit-up');
+    const d = await resp.json();
+    renderLimitUp(d);
+  } catch(e) {
+    panel.innerHTML = `<div style="padding:12px;color:var(--red);">⚠ 加载失败: ${e.message}</div>`;
+  }
+}
+
+function renderLimitUp(d) {
+  const panel = document.getElementById('limitUpPanel');
+  const lu = d.total_limit_up || 0, ld = d.total_limit_down || 0, lk = d.limit_up_open || 0;
+  const bl = d.board_levels || {};
+  const up = d.up_stocks || [], down = d.down_stocks || [];
+
+  let html = `<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:120px;text-align:center;padding:12px;background:#fef2f2;border-radius:8px;">
+      <div style="font-size:24px;font-weight:700;color:var(--red);">${lu}</div>
+      <div style="font-size:11px;color:var(--sub);">今日涨停</div>
+    </div>
+    <div style="flex:1;min-width:120px;text-align:center;padding:12px;background:#fffbeb;border-radius:8px;">
+      <div style="font-size:24px;font-weight:700;color:#d97706;">${lk}</div>
+      <div style="font-size:11px;color:var(--sub);">炸板</div>
+    </div>
+    <div style="flex:1;min-width:120px;text-align:center;padding:12px;background:#f0fdf4;border-radius:8px;">
+      <div style="font-size:24px;font-weight:700;color:var(--green);">${ld}</div>
+      <div style="font-size:11px;color:var(--sub);">今日跌停</div>
+    </div>
+  </div>`;
+
+  // 连板高度
+  const levels = ['6','5','4','3','2','1'];
+  const levelLabels = {'6':'6连板+','5':'5连板','4':'4连板','3':'3连板','2':'2连板','1':'首板'};
+  html += '<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">';
+  levels.forEach(k => {
+    const v = bl[k] || 0;
+    html += `<div style="padding:6px 14px;border-radius:6px;background:${v>0?'#fef2f2':'#f9fafb'};border:1px solid ${v>0?'#fecaca':'var(--border)'};text-align:center;">
+      <div style="font-size:16px;font-weight:700;color:${v>0?'var(--red)':'var(--sub)'};">${v}</div>
+      <div style="font-size:10px;color:var(--sub);">${levelLabels[k]}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // 涨停列表
+  if (up.length) {
+    html += '<div style="font-weight:600;font-size:13px;margin-bottom:6px;">涨停股票</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+    up.slice(0,40).forEach(s => {
+      const pct = (s.change_pct||0).toFixed(1);
+      html += `<span style="padding:3px 10px;background:#fef2f2;border:1px solid #fecaca;border-radius:4px;font-size:12px;">
+        <b>${s.name}</b> ${s.code} <span class="up">+${pct}%</span></span>`;
+    });
+    html += '</div>';
+  }
+
+  // 跌停列表
+  if (down.length) {
+    html += '<div style="font-weight:600;font-size:13px;margin-bottom:6px;">跌停股票</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    down.slice(0,20).forEach(s => {
+      const pct = (s.change_pct||0).toFixed(1);
+      html += `<span style="padding:3px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;font-size:12px;">
+        <b>${s.name}</b> ${s.code} <span class="down">${pct}%</span></span>`;
+    });
+    html += '</div>';
+  }
+
+  html += `<div style="margin-top:8px;font-size:10px;color:#adb5bd;">更新: ${d.update_time || '--'}</div>`;
+  panel.innerHTML = html;
+}
+
+async function loadMoneyFlow() {
+  const panel = document.getElementById('moneyFlowPanel');
+  panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);"><div class="spinner" style="margin:0 auto 8px;width:20px;height:20px;"></div>加载资金流向数据...</div>';
+  try {
+    const resp = await fetch('/api/market/money-flow?top_n=20');
+    const d = await resp.json();
+    renderMoneyFlow(d);
+  } catch(e) {
+    panel.innerHTML = `<div style="padding:12px;color:var(--red);">⚠ 加载失败: ${e.message}</div>`;
+  }
+}
+
+function renderMoneyFlow(d) {
+  const panel = document.getElementById('moneyFlowPanel');
+  const inflow = d.in || [], outflow = d.out || [];
+
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">`;
+
+  // 净流入
+  html += '<div><div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--red);">🔴 主力净流入 TOP20</div>';
+  html += '<table style="font-size:12px;width:100%;"><thead><tr style="font-size:11px;color:var(--sub);">' +
+    '<th style="padding:4px 6px;">名称</th><th style="padding:4px 6px;text-align:right;">净流入</th><th style="padding:4px 6px;text-align:right;">涨幅</th></tr></thead><tbody>';
+  inflow.forEach((s, i) => {
+    const amt = s.net_amount_yi ? s.net_amount_yi.toFixed(2) + '亿' : (s.net_amount/10000||0).toFixed(0)+'万';
+    const chg = (s.change_pct||0).toFixed(1);
+    html += `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:5px 6px;"><b>${s.name}</b><br><span style="font-size:10px;color:var(--sub);">${s.sector||''}</span></td>
+      <td style="padding:5px 6px;text-align:right;color:var(--red);font-weight:600;">${amt}</td>
+      <td style="padding:5px 6px;text-align:right;${chg>=0?'color:var(--red)':'color:var(--green)'}">${chg>=0?'+':''}${chg}%</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+
+  // 净流出
+  html += '<div><div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--green);">🟢 主力净流出 TOP20</div>';
+  html += '<table style="font-size:12px;width:100%;"><thead><tr style="font-size:11px;color:var(--sub);">' +
+    '<th style="padding:4px 6px;">名称</th><th style="padding:4px 6px;text-align:right;">净流出</th><th style="padding:4px 6px;text-align:right;">涨幅</th></tr></thead><tbody>';
+  outflow.forEach((s, i) => {
+    const amt = s.net_amount_yi ? Math.abs(s.net_amount_yi).toFixed(2) + '亿' : Math.abs(s.net_amount/10000||0).toFixed(0)+'万';
+    const chg = (s.change_pct||0).toFixed(1);
+    html += `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:5px 6px;"><b>${s.name}</b><br><span style="font-size:10px;color:var(--sub);">${s.sector||''}</span></td>
+      <td style="padding:5px 6px;text-align:right;color:var(--green);font-weight:600;">${amt}</td>
+      <td style="padding:5px 6px;text-align:right;${chg>=0?'color:var(--red)':'color:var(--green)'}">${chg>=0?'+':''}${chg}%</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+
+  html += '</div>';
+  html += `<div style="margin-top:8px;font-size:10px;color:#adb5bd;">更新: ${d.update_time || '--'}</div>`;
+  panel.innerHTML = html;
+}
+
+// Auto-load market data when results show up
+const _origRenderResults = renderResults;
+const _renderResultsWrapper = function(data) {
+  _origRenderResults(data);
+  loadLimitUp();
+  loadMoneyFlow();
+};
+renderResults = _renderResultsWrapper;
 
 // ═══════════════════════════════════════════
 // 个股 K线 弹窗

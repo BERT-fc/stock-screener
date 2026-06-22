@@ -293,3 +293,175 @@ class EastMoneyFetcher(BaseFetcher):
         except Exception as e:
             print(f"[EastMoney] limit up list failed: {e}")
             return []
+
+    async def get_limit_up_stats(self) -> dict:
+        """
+        获取涨停板综合统计（含连板高度分类）
+        返回: { total_limit_up, total_limit_down, limit_up_open, board_stats, up_stocks, down_stocks }
+        """
+        params = {
+            "pn": "1",
+            "pz": "2000",
+            "po": "0",
+            "np": "1",
+            "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+            "fltt": "2",
+            "invt": "2",
+            "fid": "f3",
+            "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:0+t:81",
+            "fields": "f2,f3,f4,f8,f10,f12,f14,f15,f16,f17,f23,f100,f115,f62,f184",
+        }
+        try:
+            text = await self._request(self.STOCK_LIST_URL, params=params)
+            data = json.loads(text)
+            stocks = []
+            if not data.get("data") or not data["data"].get("diff"):
+                return self._empty_limit_stats()
+
+            for row in data["data"]["diff"]:
+                chg_pct = self.safe_float(row.get("f3"))
+                code_str = row.get("f12", "")
+                if not code_str:
+                    continue
+                market = "sh" if code_str.startswith(("60", "68")) else \
+                         "sz" if code_str.startswith(("00", "30")) else "bj"
+                stocks.append({
+                    "code": f"{market}{code_str}",
+                    "name": row.get("f14", ""),
+                    "price": self.safe_float(row.get("f2")),
+                    "change_pct": chg_pct,
+                    "turnover": self.safe_float(row.get("f15")),
+                    "amount": self.safe_float(row.get("f23")),  # 成交额
+                    "pe": self.safe_float(row.get("f9")),
+                    "total_mcap": self.safe_float(row.get("f20")),
+                    "sector": self._get_industry(row.get("f100", "")),
+                    "high": self.safe_float(row.get("f17")),
+                    "low": self.safe_float(row.get("f16")),
+                    "open": self.safe_float(row.get("f4")),
+                })
+
+            if not stocks:
+                return self._empty_limit_stats()
+
+            # 分类
+            limit_up_stocks = [s for s in stocks if s["change_pct"] >= 9.8 and s["change_pct"] < 300]
+            limit_down_stocks = [s for s in stocks if s["change_pct"] <= -9.8 and s["change_pct"] > -300]
+
+            # 炸板：曾涨停但未封住（高开或冲高回落超过9.8%但没封住）
+            limit_up_open = [s for s in stocks
+                if 7.0 <= s["change_pct"] < 9.5
+                and s["high"] >= s["close"] * 1.08
+            ]
+
+            # 连板需要通过历史K线分析获取准确连板天数
+            # 这里先按涨幅分级估算连板
+            board_levels = self._classify_limit_up_levels(limit_up_stocks)
+
+            return {
+                "total_limit_up": len(limit_up_stocks),
+                "total_limit_down": len(limit_down_stocks),
+                "limit_up_open": len(limit_up_open),
+                "board_levels": board_levels,
+                "up_stocks": limit_up_stocks[:80],      # 最多返回80只涨停
+                "down_stocks": limit_down_stocks[:20],   # 最多20只跌停
+                "update_time": "",
+            }
+
+        except Exception as e:
+            print(f"[EastMoney] limit up stats failed: {e}")
+            return self._empty_limit_stats()
+
+    def _classify_limit_up_levels(self, stocks: list[dict]) -> dict:
+        """按涨幅分级估算连板高度"""
+        levels = {"6": 0, "5": 0, "4": 0, "3": 0, "2": 0, "1": 0}
+        for s in stocks:
+            cp = s["change_pct"]
+            # 连板需要连续涨停，这里用涨幅粗估
+            if cp >= 30:  # 北交所/科创
+                levels["6"] += 1
+            elif cp >= 20:  # 创业板
+                levels["5"] += 1
+            elif cp >= 15:
+                levels["4"] += 1
+            elif cp >= 12:
+                levels["3"] += 1
+            elif cp >= 10.5:
+                levels["2"] += 1
+            else:
+                levels["1"] += 1
+        return levels
+
+    def _get_industry(self, code: str) -> str:
+        """将东方财富板块代码转为中文行业名"""
+        if not code:
+            return "综合"
+        name = self.SECTOR_MAP.get(code, "")
+        if name:
+            return name
+        # 对未映射的BK代码做泛化
+        return "综合"
+
+    def _empty_limit_stats(self) -> dict:
+        return {
+            "total_limit_up": 0, "total_limit_down": 0, "limit_up_open": 0,
+            "board_levels": {"6": 0, "5": 0, "4": 0, "3": 0, "2": 0, "1": 0},
+            "up_stocks": [], "down_stocks": [],
+            "update_time": "",
+        }
+
+    async def get_money_flow_rank(self, top_n: int = 20) -> dict:
+        """
+        获取主力资金净流入/净流出 TOP N
+        返回: { in: [{code, name, net_amount, sector, price, change_pct}],
+                 out: [{code, name, net_amount, sector, price, change_pct}] }
+        """
+        params = {
+            "pn": "1",
+            "pz": str(top_n),
+            "po": "1",
+            "np": "1",
+            "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+            "fltt": "2",
+            "invt": "2",
+            "fid": "f62",        # 按主力净流入排序
+            "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:0+t:81",
+            "fields": "f2,f3,f12,f14,f62,f66,f69,f78,f84,f100,f184,f185",
+        }
+        try:
+            text = await self._request(self.STOCK_LIST_URL, params=params)
+            data = json.loads(text)
+            if not data.get("data") or not data["data"].get("diff"):
+                return {"in": [], "out": []}
+
+            all_flow = []
+            for row in data["data"]["diff"]:
+                code_str = row.get("f12", "")
+                if not code_str:
+                    continue
+                market = "sh" if code_str.startswith(("60", "68")) else \
+                         "sz" if code_str.startswith(("00", "30")) else "bj"
+                net = self.safe_float(row.get("f62"))  # 主力净流入
+                all_flow.append({
+                    "code": f"{market}{code_str}",
+                    "name": row.get("f14", ""),
+                    "net_amount": net,                      # 万元
+                    "net_amount_yi": round(net / 10000, 2) if net else 0,  # 转为亿元
+                    "price": self.safe_float(row.get("f2")),
+                    "change_pct": self.safe_float(row.get("f3")),
+                    "sector": self._get_industry(row.get("f100", "")),
+                })
+
+            # 按净流入排序
+            all_flow.sort(key=lambda x: x["net_amount"] or 0, reverse=True)
+
+            # 流入TOP N (net > 0)
+            inflow = [s for s in all_flow if (s["net_amount"] or 0) > 0][:top_n]
+            # 流出TOP N (net < 0，取绝对值最大的)
+            outflow = sorted([s for s in all_flow if (s["net_amount"] or 0) < 0],
+                             key=lambda x: x["net_amount"] or 0)[:top_n]
+
+            return {"in": inflow, "out": outflow}
+
+        except Exception as e:
+            print(f"[EastMoney] money flow rank failed: {e}")
+            return {"in": [], "out": []}

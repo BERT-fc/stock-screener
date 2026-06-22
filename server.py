@@ -139,6 +139,31 @@ async def stock_kline_detail(code: str, period: str = Query("day", description="
 
 
 # ═══════════════════════════════════════════
+# 涨停板统计 + 主力资金流向
+# ═══════════════════════════════════════════
+
+@app.get("/api/market/limit-up")
+async def market_limit_up():
+    """涨停板综合统计（连板高度、涨停/跌停列表）"""
+    em = get_eastmoney()
+    result = await em.get_limit_up_stats()
+    result["update_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return result
+
+
+@app.get("/api/market/money-flow")
+async def market_money_flow(top_n: int = Query(20, ge=5, le=50)):
+    """主力资金净流入/流出 TOP N"""
+    em = get_eastmoney()
+    result = await em.get_money_flow_rank(top_n=top_n)
+    return {
+        "top_n": top_n,
+        "update_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        **result,
+    }
+
+
+# ═══════════════════════════════════════════
 # 行情接口（腾讯财经）
 # ═══════════════════════════════════════════
 
